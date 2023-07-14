@@ -1,5 +1,6 @@
 package com.Utopia.Joren.LoginAndRegister.Services;
 
+import com.Utopia.Joren.LoginAndRegister.Dto.UserDto;
 import com.Utopia.Joren.LoginAndRegister.Models.Role;
 import com.Utopia.Joren.LoginAndRegister.Models.User;
 import com.Utopia.Joren.LoginAndRegister.Repositories.RoleRepository;
@@ -32,21 +33,21 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public void saveUser(User user) {
-        User user1 = new User();
+    public void saveUser(UserDto userDto) {
+        User user = new User();
 
-        user1.setName(user.getName());
-        user1.setEmail(user.getEmail());
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
 
         //Encrypt password with spring security
-        user1.setPassword(passwordEncoder.encode((user.getPassword())));
+        user.setPassword(passwordEncoder.encode((userDto.getPassword())));
 
         Role role = roleRepository.findByName("ROLE_ADMIN");
         if(role == null){
             role = checkRoleExist();
         }
         user.setRoles(Arrays.asList(role));
-        userRepository.save(user1);
+        userRepository.save(user);
     }
 
     private Role checkRoleExist() {
@@ -61,9 +62,17 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<User> findAllUsers() {
-        return userRepository.findAll();
+    public List<UserDto> findAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
-    //NEED TO IMPLEMENT USERDTO
+    private UserDto mapToUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setName(user.getName());
+        userDto.setEmail(user.getEmail());
+        return userDto;
+    }
 }
